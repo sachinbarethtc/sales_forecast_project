@@ -1,232 +1,54 @@
-# # # # # from app.db import get_engine
-# # # # # import pandas as pd
-# # # # # from app.config import settings
-# # # # # from sqlalchemy import text
-
-
-# # # # # def write_forecast_to_db(forecast_df: pd.DataFrame, freq: str, created_by: str = "system"):
-# # # # #     # """
-# # # # #     # Writes forecast results into the results table.
-# # # # #     # forecast_df must contain columns:
-# # # # #     #     - day
-# # # # #     #     - yhat
-# # # # #     #     - yhat_lower
-# # # # #     #     - yhat_upper
-# # # # #     # """
-
-# # # # #     # engine = get_engine()
-
-# # # # #     # # Using uppercase env variables as per updated config.py
-# # # # #     # schema = settings.TARGET_SCHEMA
-# # # # #     # table = settings.RESULT_TABLE
-
-# # # # #     # with engine.begin() as conn:
-
-# # # # #     #     # Create table if not exists
-# # # # #     #     conn.execute(text(f"""
-# # # # #     #         CREATE TABLE IF NOT EXISTS {schema}.{table} (
-# # # # #     #             day date,
-# # # # #     #             freq varchar(20),
-# # # # #     #             yhat double precision,
-# # # # #     #             yhat_lower double precision,
-# # # # #     #             yhat_upper double precision,
-# # # # #     #             created_at timestamp default now(),
-# # # # #     #             created_by varchar(50)
-# # # # #     #         );
-# # # # #     #     """))
-
-# # # # #     #     # Clear old forecast of same frequency (monthly/weekly)
-# # # # #     #     conn.execute(
-# # # # #     #         text(f"DELETE FROM {schema}.{table} WHERE freq = :freq"),
-# # # # #     #         {"freq": freq}
-# # # # #     #     )
-
-# # # # #     #     # Prepare dataframe for insertion
-# # # # #     #     df = forecast_df.copy()
-# # # # #     #     df["freq"] = freq
-# # # # #     #     df["created_by"] = created_by
-
-# # # # #     #     # Insert new forecast
-# # # # #     #     df.to_sql(
-# # # # #     #         table,
-# # # # #     #         con=engine,
-# # # # #     #         schema=schema,
-# # # # #     #         if_exists="append",
-# # # # #     #         index=False,
-# # # # #     #         method="multi"
-# # # # #     #     )
-
-# # # # #     return True
-
-
-
-# # # # import pandas as pd
-# # # # from sqlalchemy import text
-# # # # from app.db import get_engine
-# # # # from app.config import settings
-
-
-# # # # def write_forecast_to_db(df: pd.DataFrame, freq: str, created_by="system"):
-# # # #     engine = get_engine()
-# # # #     schema = settings.TARGET_SCHEMA
-# # # #     table = settings.RESULT_TABLE
-
-# # # #     with engine.begin() as conn:
-# # # #         conn.execute(text(f"""
-# # # #             CREATE TABLE IF NOT EXISTS {schema}.{table} (
-# # # #                 day date,
-# # # #                 freq varchar,
-# # # #                 yhat double precision,
-# # # #                 yhat_lower double precision,
-# # # #                 yhat_upper double precision,
-# # # #                 created_at timestamp default now(),
-# # # #                 created_by varchar
-# # # #             );
-# # # #         """))
-
-# # # #         conn.execute(
-# # # #             text(f"DELETE FROM {schema}.{table} WHERE freq = :freq"),
-# # # #             {"freq": freq}
-# # # #         )
-
-# # # #         df2 = df.copy()
-# # # #         df2["freq"] = freq
-# # # #         df2["created_by"] = created_by
-
-# # # #         df2.to_sql(table, engine, schema=schema, if_exists="append", index=False, method="multi")
-
-
-
-# # # import pandas as pd
-# # # from sqlalchemy import text
-# # # from app.db import get_engine
-# # # from app.config import settings
-# # # from app.logger import logger
-
-
-# # # def write_forecast_to_db(df: pd.DataFrame, freq: str, created_by="system"):
-# # #     logger.info(f"[DB WRITE] Writing {len(df)} rows for freq={freq}")
-
-# # #     engine = get_engine()
-# # #     schema = settings.TARGET_SCHEMA
-# # #     table = settings.RESULT_TABLE
-
-# # #     with engine.begin() as conn:
-# # #         conn.execute(text(f"""
-# # #             CREATE TABLE IF NOT EXISTS {schema}.{table} (
-# # #                 day date,
-# # #                 freq varchar,
-# # #                 yhat double precision,
-# # #                 yhat_lower double precision,
-# # #                 yhat_upper double precision,
-# # #                 created_at timestamp default now(),
-# # #                 created_by varchar
-# # #             );
-# # #         """))
-
-# # #         conn.execute(text(f"DELETE FROM {schema}.{table} WHERE freq = :freq"),
-# # #                      {"freq": freq})
-
-# # #     df2 = df.copy()
-# # #     df2["freq"] = freq
-# # #     df2["created_by"] = created_by
-
-# # #     df2.to_sql(table, engine, schema=schema, if_exists="append",
-# # #                index=False, method="multi")
-
-# # #     logger.info("[DB WRITE] Completed insertion.")
-
-
-
-# # import pandas as pd
-# # from sqlalchemy import text
-# # from app.db import get_engine
-# # from app.config import settings
-# # from app.logger import logger
-
-
-# # def write_assortment_forecast(df: pd.DataFrame, prediction_type: str):
-
-# #     engine = get_engine()
-# #     schema = settings.TARGET_SCHEMA
-# #     table = settings.RESULT_TABLE  # example: forecast_results_assortment
-
-# #     logger.info(f"[DB WRITE] Writing {len(df)} rows → {schema}.{table}")
-
-# #     with engine.begin() as conn:
-# #         conn.execute(text(f"""
-# #             CREATE TABLE IF NOT EXISTS {schema}.{table} (
-# #                 site_code INT,
-# #                 assortment_name VARCHAR,
-# #                 month VARCHAR(10),
-# #                 predicted_qty DOUBLE PRECISION,
-# #                 prediction_date DATE,
-# #                 prediction_type VARCHAR(20),
-# #                 created_at TIMESTAMP DEFAULT NOW()
-# #             );
-# #         """))
-
-# #     df.to_sql(table, engine, schema=schema,
-# #               if_exists="append", index=False, method="multi")
-
-# #     logger.info("[DB WRITE] Insert completed.")
-
-
 # import logging
 # import pandas as pd
 # from datetime import datetime
 # from sqlalchemy import text
+# from app.db import get_engine
+# from app.config import settings
 
 # logger = logging.getLogger("forecast-app")
 
-# TABLE_NAME = "forecast_results"
-# SCHEMA = "mbazaar_sandbox"
+# TABLE_NAME = "forecast_results_new"
+# SCHEMA = settings.TARGET_SCHEMA
 
 
-# def write_forecast_to_db(df: pd.DataFrame, freq: str):
-#     """
-#     Convert assortment-level output into global table format.
-#     Table expects: day, freq, yhat, yhat_lower, yhat_upper, created_at, created_by
-#     """
-
+# def write_forecast_to_db(df: pd.DataFrame, prediction_type: str):
 #     try:
-#         logger.info(f"[DB] Preparing {len(df)} rows for insert → {SCHEMA}.{TABLE_NAME}")
+#         engine = get_engine()
 
-#         out = pd.DataFrame()
+#         logger.info(f"[DB] Writing {len(df)} rows → {SCHEMA}.{TABLE_NAME}")
 
-#         # REQUIRED COLUMNS IN FINAL TABLE
-#         out["day"] = df["month"].astype(str) + "-01"
-#         out["day"] = pd.to_datetime(out["day"]) + pd.offsets.MonthEnd(0)
+#         # Create table if not exists
+#         with engine.begin() as conn:
+#             conn.execute(text(f"""
+#                 CREATE TABLE IF NOT EXISTS {SCHEMA}.{TABLE_NAME} (
+#                     site_code INT,
+#                     assortment_name VARCHAR,
+#                     month VARCHAR(20),
+#                     predicted_qty DOUBLE PRECISION,
+#                     prediction_date DATE,
+#                     prediction_type VARCHAR(20),
+#                     created_at TIMESTAMP DEFAULT NOW()
+#                 );
+#             """))
 
-#         out["freq"] = freq.lower()
-#         out["yhat"] = df["predicted_qty"].astype(float)
+#         df["created_at"] = datetime.now()
 
-#         # For now we assume no CI, set same value
-#         out["yhat_lower"] = out["yhat"] * 0.8
-#         out["yhat_upper"] = out["yhat"] * 1.2
-
-#         out["created_at"] = datetime.now()
-#         out["created_by"] = "system"
-
-#         logger.info(f"[DB] Final converted rows → {out.shape}")
-
-#         from app.db import engine
-
-#         out.to_sql(
+#         df.to_sql(
 #             TABLE_NAME,
 #             engine,
 #             schema=SCHEMA,
 #             if_exists="append",
 #             index=False,
 #             method="multi",
-#             chunksize=500
+#             chunksize=1000
 #         )
 
 #         logger.info("[DB] Insert successful")
 
 #     except Exception as e:
-#         logger.error(f"[DB ERROR] {str(e)}", exc_info=True)
+#         logger.error("[DB ERROR]", exc_info=True)
 #         raise
+
 
 
 import logging
@@ -238,44 +60,115 @@ from app.config import settings
 
 logger = logging.getLogger("forecast-app")
 
-TABLE_NAME = "forecast_results_assortment"
+TABLE_NAME = settings.RESULT_TABLE
 SCHEMA = settings.TARGET_SCHEMA
 
 
+# ===========================================
+# 🔥 AUTO SCHEMA MIGRATION (NO MORE ERRORS)
+# ===========================================
+def ensure_table_schema(engine, schema, table):
+    with engine.begin() as conn:
+
+        # 1️⃣ Create table if not exists
+        conn.execute(text(f"""
+            CREATE TABLE IF NOT EXISTS {schema}.{table} (
+                site_code INT,
+                assortment_name VARCHAR,
+                month VARCHAR(20),
+                week VARCHAR(20),
+                predicted_qty DOUBLE PRECISION,
+                prediction_date DATE,
+                prediction_type VARCHAR(20),
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+        """))
+
+        # 2️⃣ Auto-add missing columns (safe)
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS month VARCHAR(20);"))
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS week VARCHAR(20);"))
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS predicted_qty DOUBLE PRECISION;"))
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS prediction_date DATE;"))
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS prediction_type VARCHAR(20);"))
+        conn.execute(text(f"ALTER TABLE {schema}.{table} ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();"))
+
+        logger.info("[DB] Schema verified & updated successfully.")
+
+
+# ===========================================
+# 🔥 FINAL WRITER FUNCTION (UPSERT LOGIC)
+# ===========================================
 def write_forecast_to_db(df: pd.DataFrame, prediction_type: str):
-    try:
-        engine = get_engine()
+    engine = get_engine()
+    schema = settings.TARGET_SCHEMA
+    table = TABLE_NAME
 
-        logger.info(f"[DB] Writing {len(df)} rows → {SCHEMA}.{TABLE_NAME}")
+    # 🟢 Auto add missing table/columns BEFORE writing
+    ensure_table_schema(engine, schema, table)
 
-        # Create table if not exists
-        with engine.begin() as conn:
-            conn.execute(text(f"""
-                CREATE TABLE IF NOT EXISTS {SCHEMA}.{TABLE_NAME} (
-                    site_code INT,
-                    assortment_name VARCHAR,
-                    month VARCHAR(20),
-                    predicted_qty DOUBLE PRECISION,
-                    prediction_date DATE,
-                    prediction_type VARCHAR(20),
-                    created_at TIMESTAMP DEFAULT NOW()
-                );
-            """))
+    df = df.copy()
+    df["prediction_type"] = prediction_type
+    df["created_at"] = datetime.now()
 
-        df["created_at"] = datetime.now()
+    # Ensure required columns exist in dataframe
+    if "month" not in df.columns:
+        df["month"] = None
+    if "week" not in df.columns:
+        df["week"] = None
 
-        df.to_sql(
-            TABLE_NAME,
-            engine,
-            schema=SCHEMA,
-            if_exists="append",
-            index=False,
-            method="multi",
-            chunksize=1000
-        )
+    # =======================================
+    # 2️⃣ DELETE ONLY MATCHING ROWS (UPSERT)
+    # =======================================
+    with engine.begin() as conn:
 
-        logger.info("[DB] Insert successful")
+        for _, row in df.iterrows():
 
-    except Exception as e:
-        logger.error("[DB ERROR]", exc_info=True)
-        raise
+            if prediction_type == "monthly":
+                conn.execute(text(f"""
+                    DELETE FROM {schema}.{table}
+                    WHERE site_code = :site
+                    AND assortment_name = :asmt
+                    AND month = :month
+                    AND prediction_type = 'monthly';
+                """), {
+                    "site": row["site_code"],
+                    "asmt": row["assortment_name"],
+                    "month": row["month"]
+                })
+
+            elif prediction_type == "weekly":
+                conn.execute(text(f"""
+                    DELETE FROM {schema}.{table}
+                    WHERE site_code = :site
+                    AND assortment_name = :asmt
+                    AND week = :week
+                    AND prediction_type = 'weekly';
+                """), {
+                    "site": row["site_code"],
+                    "asmt": row["assortment_name"],
+                    "week": row["week"]
+                })
+
+    # =======================================
+    # 3️⃣ INSERT (APPEND)
+    # =======================================
+    df[[
+        "site_code",
+        "assortment_name",
+        "month",
+        "week",
+        "predicted_qty",
+        "prediction_date",
+        "prediction_type",
+        "created_at"
+    ]].to_sql(
+        table,
+        engine,
+        schema=schema,
+        if_exists="append",
+        index=False,
+        method="multi",
+        chunksize=1000
+    )
+
+    logger.info(f"[DB] Successfully inserted {len(df)} rows for {prediction_type}")
