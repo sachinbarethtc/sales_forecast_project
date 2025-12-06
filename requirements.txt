@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg2-binary
+pandas
+python-dotenv
+# prophet        # optional - if you want prophet
+statsmodels
+pydantic
+apscheduler
+requests
+pip install 
