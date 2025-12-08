@@ -14,7 +14,6 @@ def get_logger(name="forecast-app", level=logging.INFO):
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(LOG_FORMAT, datefmt=DATEFMT))
     logger.addHandler(handler)
-    # reduce verbosity from libraries if desired
     logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     return logger
 

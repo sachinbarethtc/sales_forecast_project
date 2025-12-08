@@ -17,3 +17,6 @@ df = pd.read_sql("""
 """, engine)
 
 df
+
+
+uvicorn app.api:app --reload
